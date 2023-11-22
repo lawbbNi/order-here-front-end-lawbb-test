@@ -1,3 +1,4 @@
 # OrderHere
-used for devops to implement CICD Pipeline
-used for project deployment on vercel
+used for DevOps to implement CICD Pipeline
+
+used for project deployment on Vercel
