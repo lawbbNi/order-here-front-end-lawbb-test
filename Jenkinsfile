@@ -1,11 +1,11 @@
 pipeline {
     agent any 
-    enviornment{
+    environment{
         Vercel_Token = credentials('lawbb-vercel-orderhere-front-end')
     }
-    tools {nodejs "nodejs"}
+    
     stages {
-        stage('environment') {
+        stage('Environment') {
             steps {
                 sh 'npm install'
                 sh 'npm start'
@@ -22,8 +22,11 @@ pipeline {
                 sh 'npm run test'
             }
         }
-        stage('deploy'){
-            sh 'vercel --token = $Vercel_Token --prod --confirm'
+        stage('Deploy'){
+            steps{
+              sh 'vercel --token = $Vercel_Token --prod --confirm'  
+            }
+            
         }
     }
 }
