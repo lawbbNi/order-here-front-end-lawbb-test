@@ -1,2 +1,2 @@
 # OrderHere
-used for vercel to deploy the website
+used for devops to implement CICD Pipeline
