@@ -1,43 +1,49 @@
-
 import { Box, Button } from '@mui/material';
-
 import { useRouter } from 'next/router';
 import RestaurantInfoHeader from '../../components/restaurantInfo/components/restaurantInfoHeader';
 import RestaurantInfoContent from '../../components/restaurantInfo/components/restaurantInfoContent';
 import Contact from '../../components/restaurantInfo/components/contact';
 import OpeningHours from '../../components/restaurantInfo/components/openingHours';
-
 import { EditRestaurantModal } from '../../components/restaurantInfo/EditRestaurantModal';
-import { useEffect, useState } from 'react';
-import { getRestaurantInfo } from '../../services/Restuarant';
+import { useState } from 'react';
+import { getRestaurantInfo } from '../../services/Restaurant';
+import { useSelector } from 'react-redux';
+import { jwtInfo } from '../../utils/jwtInfo';
 
+export async function getStaticPaths() {
+  return {
+    paths: [{ params: { restaurantId: '1' } }],
+    fallback: false,
+  };
+}
 
-const RestaurantInfoPage = () => {
+export async function getStaticProps({ params }) {
+  try {
+    const response = await getRestaurantInfo(params.restaurantId);
+    // console.log('restaurant-response:', response.data)
+    return {
+      props: {
+        restaurantData: response.data,
+      },
+      revalidate: 10,
+    };
+  } catch (error) {
+    console.error('Error fetching restaurant info:', error);
+    return { props: { restaurantData: null } };
+  }
+}
+
+const RestaurantInfoPage = ({ restaurantData: initialData }) => {
   const router = useRouter();
   const { restaurantId } = router.query;
-
   const [loading, setLoading] = useState(false);
-  const [restaurantData, setRestaurantData] = useState(null);
+  // console.log('restaurant-info-data:', initialData)
+  const [restaurantData, setRestaurantData] = useState(initialData);
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (restaurantId) {
-      setLoading(true);
-      getRestaurantInfo(restaurantId)
-        .then((response) => {
-          console.log('Fetched data:', response.data);
-          setRestaurantData(response.data);
-        })
-        .catch((err) => {
-          console.error('Error fetching data:', err);
-          setError(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [restaurantId]);
+  const { token } = useSelector((state) => state.sign);
+  const { userRole } = jwtInfo(token);
 
   if (!restaurantId || loading) {
     return <div>Loading...</div>;
@@ -64,7 +70,6 @@ const RestaurantInfoPage = () => {
     }
   };
 
-
   return (
     <Box
       sx={{
@@ -72,38 +77,39 @@ const RestaurantInfoPage = () => {
       }}
     >
       <RestaurantInfoHeader />
-
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-around',
-        }}
-      >
-        <Button
-          variant="contained"
-          onClick={handleEditButtonClick}
+      {userRole == 'ROLE_sys_admin' && (
+        <Box
           sx={{
-            marginY: 4,
-            backgroundColor: 'button.main',
-            color: '#fff',
-            '&:hover': {
-              backgroundColor: 'button.main',
-              opacity: 0.6,
-              transition: '0.3s',
-            },
+            display: 'flex',
+            justifyContent: 'space-around',
           }}
         >
-          EDIT RESTAURANT INFO
-        </Button>
-        {isEditModalOpen && (
-          <EditRestaurantModal
-            restaurantId={restaurantId}
-            initialData={restaurantData}
-            onClose={() => setIsEditModalOpen(false)}
-            onUpdate={refreshRestaurantData}
-          />
-        )}
-      </Box>
+          <Button
+            variant="contained"
+            onClick={handleEditButtonClick}
+            sx={{
+              marginY: 4,
+              backgroundColor: 'button.main',
+              color: '#fff',
+              '&:hover': {
+                backgroundColor: 'button.main',
+                opacity: 0.6,
+                transition: '0.3s',
+              },
+            }}
+          >
+            EDIT RESTAURANT INFO
+          </Button>
+          {isEditModalOpen && (
+            <EditRestaurantModal
+              restaurantId={restaurantId}
+              initialData={restaurantData}
+              onClose={() => setIsEditModalOpen(false)}
+              onUpdate={refreshRestaurantData}
+            />
+          )}
+        </Box>
+      )}
 
       <RestaurantInfoContent data={restaurantData} />
       <Box

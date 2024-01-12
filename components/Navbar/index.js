@@ -19,6 +19,11 @@ import AccountButton from './AccountButton';
 import SearchIcon from '@mui/icons-material/Search';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useDispatch } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { loginWithOauthProviderAction } from '../../store/actions/httpAction';
+import * as Action from '../../store/actionTypes';
 
 export const styleNew = {
   title: {
@@ -49,16 +54,59 @@ const NavbarRoot = styled(AppBar)(({ theme }) => ({
 
 const Navbar = () => {
   const router = useRouter();
-  console.log('Current Path:', currentPath);
   const currentPath = router.pathname;
   const isHomeActive = currentPath === '/';
   const { asPath } = useRouter();
   const isStoreInfoActive = asPath.startsWith('/restaurant/');
-  console.log('Current store:', currentPath);
+  const isManagementActive = currentPath === '/order-management';
   const theme = useTheme();
   const mobileDevice = useMediaQuery(theme.breakpoints.down('md'));
   const { isLogin } = useSelector((state) => state.sign);
   const { totalItems } = useSelector((state) => state.cart);
+
+  const [sessionToken, setSessionToken] = useState();
+
+  //use session login user
+  const dispatch = useDispatch();
+
+  //set state for google session data
+  const { data: session, error } = useSession();
+  useEffect(() => {
+    if (session && session.token) {
+      setSessionToken(session.token);
+    }
+  }, [session]);
+
+  const handleSearchChange = (event) => {
+    dispatch({
+      type: Action.SET_SEARCH_TERM,
+      payload: event.target.value,
+    });
+  };
+
+  //when session.token change and user is not login ==> login user
+  useEffect(() => {
+    if (session && session.token.account && !isLogin) {
+      const { provider, providerAccountId } = session.token.account;
+      const { name, email, image } = session.token.user;
+      if (provider === 'credentials') return;
+      dispatch(
+        loginWithOauthProviderAction(
+          provider,
+          providerAccountId,
+          email,
+          name,
+          image,
+          () => {
+            console.log('login success');
+          },
+          (fail) => {
+            console.log('login fail');
+          },
+        ),
+      );
+    }
+  }, [sessionToken]);
 
   return (
     <NavbarRoot>
@@ -139,26 +187,31 @@ const Navbar = () => {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <TextField
-            variant="outlined"
-            placeholder="Search"
-            size="small"
-            sx={{
-              marginRight: '20px',
-              backgroundColor: '#F2F2F2',
-              borderRadius: '20px',
-              '& .MuiOutlinedInput-root': {
+          {router.pathname === '/' ? (
+            <TextField
+              variant="outlined"
+              placeholder="Search"
+              size="small"
+              sx={{
+                marginRight: '20px',
+                backgroundColor: '#F2F2F2',
                 borderRadius: '20px',
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '20px',
+                },
+              }}
+              onChange={handleSearchChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          ) : (
+            <Box sx={{ flexGrow: 0.725 }} />
+          )}
 
           <AccountButton isLogin={isLogin} />
         </>

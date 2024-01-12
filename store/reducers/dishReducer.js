@@ -4,6 +4,8 @@ const initialState = {
   dishes: [],
   isLoading: false,
   error: null,
+  searchTerm: '',
+  category: null,
 };
 
 const dishesReducer = (state = initialState, { type, payload }) => {
@@ -27,6 +29,16 @@ const dishesReducer = (state = initialState, { type, payload }) => {
         ...state,
         isLoading: false,
         error: payload,
+      };
+    case Action.SET_SEARCH_TERM:
+      return {
+        ...state,
+        searchTerm: payload,
+      };
+    case Action.SET_CATEGORY:
+      return {
+        ...state,
+        category: payload,
       };
 
     default:

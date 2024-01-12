@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Box, Button, Stack } from '@mui/material';
-import { getCategoriesByRestaurant } from '../../services/Category';
+import { useDispatch } from 'react-redux';
+import * as Actions from '../../store/actionTypes';
 
 const buttonGroupStyles = {
   justifyContent: 'center',
@@ -8,34 +9,35 @@ const buttonGroupStyles = {
   backgroundColor: '#fff',
 };
 
-const Category = () => {
-  const [categories, setCategories] = useState([]);
+const Category = ({ categories: initialData }) => {
+  const [categories, setCategories] = useState(initialData);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await getCategoriesByRestaurant();
+  const dispatch = useDispatch();
 
-        setCategories(response.data);
-      } catch (error) {
-        console.error('Error fetching categories: ', error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+  const handleCategoryClick = (categoryId) => {
+    if (selectedCategoryId === categoryId) {
+      setSelectedCategoryId(null);
+      dispatch({ type: Actions.SET_CATEGORY, payload: null });
+    } else {
+      setSelectedCategoryId(categoryId);
+      dispatch({ type: Actions.SET_CATEGORY, payload: categoryId });
+    }
+  };
 
   return (
-    <Box sx={{ width: '100%', ...buttonGroupStyles }}>
+    <Box sx={{ width: '100%', overflowX: 'auto', ...buttonGroupStyles }}>
       <Stack
         direction="row"
-        justifyContent="center"
+        justifyContent="flex-start"
         alignItems="center"
         spacing={2}
         sx={{
           '& > *': {
-            flex: '1 1 auto',
+            flex: '0 0 auto',
+            minWidth: 'fit-content',
           },
+          flexWrap: 'nowrap',
         }}
       >
         {categories.map((category) => (
@@ -43,13 +45,20 @@ const Category = () => {
             key={category.categoryId}
             variant="outlined"
             color="secondary"
+            onClick={() => handleCategoryClick(category.categoryId)}
             sx={{
-              borderRadius: '20px',
-              color: 'black',
-              borderColor: 'black',
+              backgroundColor:
+                selectedCategoryId === category.categoryId
+                  ? 'button.main'
+                  : 'white',
+              fontSize: '13px',
+              width: '120px',
+              color:
+                selectedCategoryId === category.categoryId ? 'white' : 'black',
               '&:hover': {
-                borderColor: 'black',
-                backgroundColor: '',
+                backgroundColor: 'button.main',
+                color: 'white',
+                transition: 'all 0.5s ease',
               },
             }}
           >

@@ -4,9 +4,8 @@ import { DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-
-import {useDispatch} from "react-redux";
-import {updateDineInData} from "../../../../../store/actions/dineInAction";
+import { useDispatch } from 'react-redux';
+import * as Action from '../../../../../store/actionTypes';
 
 const DineIn = () => {
   const dispatch = useDispatch();
@@ -19,32 +18,34 @@ const DineIn = () => {
   const handleDateChange = (date) => {
     setSelectedDate(dayjs(date));
     const formattedDate = dayjs(date).format('YYYY-MM-DD');
-    dispatch(updateDineInData({ selectedDate: formattedDate }));
+    dispatch({ type: Action.SET_DATE_DATA, payload: formattedDate });
+    // console.log('date', formattedDate)
   };
 
   const handleTimeChange = (time) => {
     setSelectedTime(dayjs(time));
-
     const formattedTime = dayjs(time).format('HH:mm');
-    dispatch(updateDineInData({ selectedTime: formattedTime }));
-
+    // console.log('formattedTime', formattedTime)
+    dispatch({ type: Action.SET_TIME_DATA, payload: formattedTime });
   };
 
   const handlePersonCountChange = (event) => {
     setPersonCount(event.target.value);
-
-    dispatch(updateDineInData({ personCount: event.target.value }));
+    dispatch({
+      type: Action.SET_PERSON_COUNT_DATA,
+      payload: event.target.value,
+    });
   };
 
   const handleNameChange = (event) => {
-      setName(event.target.value);
-      dispatch(updateDineInData({ name: event.target.value }));
+    setName(event.target.value);
+    // console.log('name:', event.target.value)
+    dispatch({ type: Action.SET_NAME_DATA, payload: event.target.value });
   };
 
   const handlePhoneNumberChange = (event) => {
-      setPhoneNumber(event.target.value);
-      dispatch(updateDineInData({ phoneNumber: event.target.value }));
-
+    setPhoneNumber(event.target.value);
+    dispatch({ type: Action.SET_PHONE_DATA, payload: event.target.value });
   };
 
   const disablePastDates = (date) => {
@@ -101,9 +102,10 @@ const DineIn = () => {
                 borderRadius: '40px',
               },
             }}
-            renderInput={(props) => (
-              <TextField {...props} fullWidth margin="normal" />
-            )}
+            // renderInput={(props) => (
+            //   <TextField {...props} fullWidth margin="normal" />
+            // )}
+            slotProps={{ textField: { variant: 'outlined' } }}
           />
 
           <TimePicker
@@ -119,9 +121,10 @@ const DineIn = () => {
                 borderRadius: '40px',
               },
             }}
-            renderInput={(props) => (
-              <TextField {...props} fullWidth margin="normal" />
-            )}
+            // renderInput={(props) => (
+            //   <TextField {...props} fullWidth margin="normal" />
+            // )}
+            slotProps={{ textField: { variant: 'outlined' } }}
           />
         </Box>
 
@@ -150,9 +153,7 @@ const DineIn = () => {
                 height: 'auto',
               },
             }}
-
             onChange={handleNameChange}
-
           />
 
           <TextField
@@ -172,9 +173,7 @@ const DineIn = () => {
                 height: 'auto',
               },
             }}
-
             onChange={handlePhoneNumberChange}
-
           />
         </Box>
 
@@ -183,7 +182,7 @@ const DineIn = () => {
           onChange={handlePersonCountChange}
           displayEmpty
           fullWidth
-          margin="normal"
+          // margin="normal"
           sx={{
             marginTop: '20px',
             borderRadius: '40px',

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Avatar, Box, ButtonBase } from '@mui/material';
 import AccountPopover from './AccountPopover';
 import { useSelector, useDispatch } from 'react-redux';
@@ -10,11 +10,16 @@ import {
   closeSignDialog,
   registerSignDialog,
   loginSignDialog,
+  forgetpasswordSignDialog,
 } from '../../store/actions/signAction';
+import { useSession } from 'next-auth/react';
+import { getUserProfile } from '../../services/Profile';
 
 const AccountButton = ({ isLogin }) => {
   const anchorRef = useRef(null);
   const [openPopover, setOpenPopover] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState('headImgUrl');
+  const { data: session } = useSession();
 
   //state to manage signIn dialog
   const { isOpen, content } = useSelector((state) => state.sign);
@@ -28,13 +33,27 @@ const AccountButton = ({ isLogin }) => {
     }
   };
 
+  const fetchProfile = async () => {
+    const response = await getUserProfile();
+    setAvatarUrl(response.data.avatarUrl);
+  };
+
+  useEffect(() => {
+    if (isLogin) {
+      fetchProfile();
+    }
+  }, [isLogin]);
+
   return (
     <>
       {/* Open the SignIn Dialog is isLogin is false  */}
       {isOpen && (
         <SignDialog isOpen={isOpen} onClose={() => dispatch(closeSignDialog())}>
           {content === 'login' ? (
-            <Login register={() => dispatch(registerSignDialog())} />
+            <Login
+              register={() => dispatch(registerSignDialog())}
+              // forgetPassword={() => dispatch(forgetpasswordSignDialog())}
+            />
           ) : (
             <Signup login={() => dispatch(loginSignDialog())} />
           )}
@@ -65,7 +84,7 @@ const AccountButton = ({ isLogin }) => {
             height: 40,
             width: 40,
           }}
-          src={isLogin ? '/user.png' : ''}
+          src={isLogin && avatarUrl ? avatarUrl : ''}
         />
       </Box>
       {isLogin && (

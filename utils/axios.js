@@ -1,13 +1,15 @@
 import axios from 'axios';
-import store from '../store/store';
+import { store } from '../store/store';
 import { logoutAction } from '../store/actions/signAction';
 
 const backendHttpInstance = () => {
   const axiosInstance = axios.create();
   axiosInstance.defaults.baseURL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  axiosInstance.defaults.headers.common.Authorization =
-    store.getState().token || '';
+  axiosInstance.defaults.headers.common.Authorization = store.getState().sign
+    .token
+    ? store.getState().sign.token
+    : '';
 
   axiosInstance.interceptors.response.use(
     (config) => config,
@@ -18,7 +20,9 @@ const backendHttpInstance = () => {
       if (
         error &&
         error.response &&
-        (error.response.status === 401 || error.response.status === 405)
+        (error.response.status === 401 ||
+          error.response.status === 405 ||
+          error.response.status === 403)
       ) {
         store.dispatch(logoutAction());
         return '';

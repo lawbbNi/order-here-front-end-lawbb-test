@@ -15,7 +15,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import Yup from '../../utils/yupValidation';
 import hotToast from '../../utils/hotToast';
 import { signup } from '../../services/Public';
-import loginAction from '../../store/actions/httpAction';
+import { loginAction } from '../../store/actions/httpAction';
 import GoogleSignInBtn from './UI/GoogleSignInBtn';
 import FacebookSignInBtn from './UI/FacebookSignInBtn';
 
@@ -43,7 +43,6 @@ const Signup = ({ login }) => {
         .required('Password is required'),
     }),
     onSubmit: async (values) => {
-      console.log('values', values);
       const { firstname, lastname, email, password } = values;
       setLoading(true);
       signup(firstname + ' ' + lastname, firstname, lastname, password, email)
